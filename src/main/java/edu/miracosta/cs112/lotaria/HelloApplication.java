@@ -2,8 +2,6 @@ package edu.miracosta.cs112.lotaria;
 
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -12,27 +10,30 @@ import javafx.scene.control.ProgressBar;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
+import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
-
-import static javafx.application.Application.launch;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 public class HelloApplication extends Application {
+    //Constants
     private static final LoteriaCard[] LOTERIA_CARDS = {
             new LoteriaCard("Las matematicas", "1.png", 1),
             new LoteriaCard("Las ciencias", "2.png", 2),
             new LoteriaCard("La Tecnología", "8.png", 8),
             new LoteriaCard("La ingeniería", "9.png", 9),
     };
-
+    //Class label variables
     int cardIndex = 0;
-    double cardProgress = 0;
+    float currentProgress = 0;
     Label cardLabel = new Label();
     Button drawCardButton = new Button();
     ImageView cardImageView = new ImageView();
     ProgressBar gameProgressBar = new ProgressBar();
+    LoteriaCard[] shuffledCards;
 
     @Override
     public void start(Stage stage) {
@@ -42,9 +43,16 @@ public class HelloApplication extends Application {
         stage.setTitle("Loteria!");
         stage.setScene(scene);
         stage.show();
+        //shuffledCards here
+        shuffledCards = LOTERIA_CARDS.clone();
+        List<LoteriaCard> list = Arrays.asList(shuffledCards);
+        Collections.shuffle(list);
+        list.toArray(shuffledCards);
+        System.out.println(Arrays.toString(shuffledCards));
+
 
         Label titleLabel = new Label("Welcome to EchALE STEM Loteria!");
-        titleLabel.setFont(new Font("Arial", 35));
+        titleLabel.setFont(new Font("Arial", 32));
         root.getChildren().add(titleLabel);
 
         Image cardImage = new Image("file:./resources/0.png");
@@ -53,8 +61,10 @@ public class HelloApplication extends Application {
         cardImageView.setFitHeight(600);
         root.getChildren().add(cardImageView);
 
-        cardLabel = new Label("Draw a card to begin the game!");
-        cardLabel.setFont(new Font("Arial", 20));
+        cardLabel = new Label("Draw a card to begin the game. The progress bar will indicate how far are you in the game.");
+        cardLabel.setFont(new Font("Arial", 18));
+        cardLabel.setWrapText(true);
+        cardLabel.setTextAlignment(TextAlignment.CENTER);
         root.getChildren().add(cardLabel);
 
         gameProgressBar = new ProgressBar();
@@ -62,25 +72,25 @@ public class HelloApplication extends Application {
         root.getChildren().add(gameProgressBar);
 
         drawCardButton = new Button("Draw one card");
-        drawCardButton.setFont(new Font("Arial", 20));
+        drawCardButton.setFont(new Font("Arial", 18));
         drawCardButton.setOnAction(event -> {
             drawCard();
         });
         root.getChildren().add(drawCardButton);
-
+        /*
         AnimationTimer timer = new AnimationTimer() {
             @Override
             public void handle(long now) {
-                cardProgress += 0.001;
-                gameProgressBar.setProgress(cardProgress);
-                if(cardProgress >= 1.0) {
+                currentProgress += 0.001f;
+                gameProgressBar.setProgress(currentProgress);
+                if(currentProgress >= 1.0) {
                     drawCard();
-                    cardProgress = 0;
+                    currentProgress = 0;
                 }
             }
         };
         timer.start();
-
+        */
         scene.setOnKeyPressed(event -> {
             if(event.getCode() == KeyCode.ENTER) {
                 drawCard();
@@ -94,7 +104,14 @@ public class HelloApplication extends Application {
             cardImageView.setImage(card.getImage());
             cardLabel.setText(card.getCardName());
             cardIndex++;
-            gameProgressBar.setProgress(cardProgress);
+            currentProgress = cardIndex / (float)shuffledCards.length;
+            gameProgressBar.setProgress(currentProgress);
+        }
+        else {
+            gameProgressBar.setStyle("-fx-accent: red");
+            cardLabel.setText("GAME OVER! No more cards left! Please exit the program and rerun the program to reset the whole game. ^_^");
+            drawCardButton.setDisable(true);
+            cardImageView.setImage(new LoteriaCard().getImage());
         }
     }
     public static void main(String[] args) {
